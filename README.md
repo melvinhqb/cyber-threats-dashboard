@@ -24,6 +24,7 @@ Dashboard de surveillance des menaces cybernétiques avec interface React et API
 | `DB_PASSWORD` | Mot de passe MySQL |
 | `DB_NAME` | Nom de la base de données |
 | `PORT` | Port du serveur backend |
+| `N8N_WEBHOOK_URL` | URL du webhook n8n pour bloquer les IPs |
 
 ### Configuration de la base de données
 
@@ -64,6 +65,33 @@ CREATE TABLE IF NOT EXISTS cyber_threats (
 - `occurrences` : Nombre d'occurrences (défaut: 1)
 - `first_seen` : Première apparition (timestamp automatique)
 - `last_seen` : Dernière apparition (mise à jour automatique)
+
+### Configuration n8n pour le blocage d'IP
+
+Le dashboard inclut une fonctionnalité de blocage automatique d'IP via n8n. Pour l'activer :
+
+1. **Installer et démarrer n8n** :
+   ```bash
+   npm install -g n8n
+   n8n start
+   ```
+
+2. **Créer un workflow** avec un webhook déclencheur qui :
+   - Reçoit les données POST avec `ip`, `threatId`, et `action`
+   - Exécute la commande ufw pour bloquer l'IP :
+     ```bash
+     sudo ufw deny from <ip> to any
+     ```
+
+3. **Configurer l'URL du webhook** dans le fichier `.env` :
+   ```env
+   N8N_WEBHOOK_URL=http://localhost:5678/webhook/votre-webhook-id
+   ```
+
+4. **Exemple de workflow n8n** :
+   - Webhook Trigger → Function Node (pour traiter les données) → Execute Command (ufw deny)
+
+⚠️ **Sécurité** : Assurez-vous que n8n est sécurisé et que seules les IPs autorisées peuvent déclencher le blocage.
 
 ## 🏃‍♂️ Lancement du projet
 
@@ -129,3 +157,11 @@ npm run dev -- --host
 
 - **backend** : API Node.js sur le port 3001
 - **frontend** : Application React/Vite sur le port 5173
+
+## 📊 Fonctionnalités
+
+- Dashboard des menaces cybernétiques
+- Affichage des attaques par IP source/cible
+- Comptage des occurrences
+- Historique des apparitions
+- **🛡️ Blocage automatique d'IP** : Bouton "Bloquer" qui déclenche un workflow n8n pour bloquer l'IP avec ufw

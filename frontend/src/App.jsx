@@ -5,6 +5,7 @@ function App() {
   const [threats, setThreats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [blockingIPs, setBlockingIPs] = useState(new Set());
 
   useEffect(() => {
     // Appel à notre API Node.js
@@ -23,6 +24,41 @@ function App() {
       });
   }, []);
 
+  const handleBlockIP = async (attackerIP, threatId) => {
+    if (blockingIPs.has(threatId)) return; // Évite les clics multiples
+
+    setBlockingIPs(prev => new Set(prev).add(threatId));
+
+    try {
+      // Appel au workflow n8n pour bloquer l'IP
+      const response = await fetch('/api/block-ip', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ip: attackerIP,
+          threatId: threatId
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors du blocage de l\'IP');
+      }
+
+      const result = await response.json();
+      alert(`IP ${attackerIP} bloquée avec succès !`);
+    } catch (err) {
+      alert(`Erreur lors du blocage de l'IP ${attackerIP}: ${err.message}`);
+    } finally {
+      setBlockingIPs(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(threatId);
+        return newSet;
+      });
+    }
+  };
+
   if (loading) return <div className="container"><p>Chargement des données...</p></div>;
   if (error) return <div className="container"><p className="error">Erreur: {error}</p></div>;
 
@@ -40,6 +76,7 @@ function App() {
               <th>Occurrences</th>
               <th>Première apparition</th>
               <th>Dernière apparition</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -52,6 +89,15 @@ function App() {
                 <td>{threat.occurrences}</td>
                 <td>{new Date(threat.first_seen).toLocaleString()}</td>
                 <td>{new Date(threat.last_seen).toLocaleString()}</td>
+                <td>
+                  <button
+                    className={`block-btn ${blockingIPs.has(threat.id) ? 'blocking' : ''}`}
+                    onClick={() => handleBlockIP(threat.attacker_ip, threat.id)}
+                    disabled={blockingIPs.has(threat.id)}
+                  >
+                    {blockingIPs.has(threat.id) ? 'Blocage...' : 'Bloquer'}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

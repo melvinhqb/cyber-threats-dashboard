@@ -31,6 +31,56 @@ app.get('/api/threats', (req, res) => {
   });
 });
 
+// Route pour bloquer une IP via n8n
+app.post('/api/block-ip', async (req, res) => {
+  const { ip, threatId } = req.body;
+
+  if (!ip) {
+    return res.status(400).json({ error: 'IP address is required' });
+  }
+
+  try {
+    // URL du webhook n8n (à configurer dans les variables d'environnement)
+    const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL || 'http://localhost:5678/webhook/block-ip';
+
+    // Appel du workflow n8n
+    const response = await fetch(n8nWebhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ip: ip,
+        threatId: threatId,
+        action: 'block',
+        timestamp: new Date().toISOString()
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`n8n webhook returned ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    // Log de l'action dans la base de données (optionnel)
+    console.log(`IP ${ip} blocked via n8n workflow`);
+
+    res.json({
+      success: true,
+      message: `IP ${ip} successfully blocked`,
+      n8nResponse: result
+    });
+
+  } catch (error) {
+    console.error('Error blocking IP:', error);
+    res.status(500).json({
+      error: 'Failed to block IP',
+      details: error.message
+    });
+  }
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Backend démarré sur le port ${PORT}`);
