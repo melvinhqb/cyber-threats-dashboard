@@ -1,0 +1,73 @@
+:root {
+  --bg-color: #f4f7f6;
+  --text-color: #333;
+  --table-border: #ddd;
+  --header-bg: #2c3e50;
+  --header-text: #fff;
+  --danger: #e74c3c;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+h1 {
+  text-align: center;
+  color: var(--header-bg);
+  margin-bottom: 2rem;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+th, td {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--table-border);
+}
+
+th {
+  background-color: var(--header-bg);
+  color: var(--header-text);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+}
+
+.ip-badge {
+  background-color: var(--danger);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+.error {
+  color: var(--danger);
+  font-weight: bold;
+  text-align: center;
+}
